@@ -4,11 +4,11 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"strconv"
 	"sync"
 	"time"
 
 	"github.com/bb9leko/rate-limiter/store"
+	"github.com/spf13/viper"
 	"golang.org/x/time/rate"
 )
 
@@ -87,19 +87,15 @@ func getTokenConfig(token string) (rate int, burst int, ttl time.Duration) {
 }
 
 func getEnvInt(name string, def int) int {
-	if v := os.Getenv(name); v != "" {
-		if i, err := strconv.Atoi(v); err == nil {
-			return i
-		}
+	if viper.IsSet(name) {
+		return viper.GetInt(name)
 	}
 	return def
 }
 
 func getEnvDuration(name string, def time.Duration) time.Duration {
-	if v := os.Getenv(name); v != "" {
-		if d, err := time.ParseDuration(v); err == nil {
-			return d
-		}
+	if viper.IsSet(name) {
+		return viper.GetDuration(name)
 	}
 	return def
 }

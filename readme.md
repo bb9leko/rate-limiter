@@ -58,7 +58,7 @@ Descrição:<br> O objetivo deste desafio é criar um rate limiter em Go que pos
 
 ```go test ./middleware```
 
-### Enviar Requisições para a apliçação 
+### Enviar Requisições com Token no Header para a aplicação
 
 ```for i in {1..10}; do curl -H "API_KEY: token123" -X GET http://localhost:8080; echo; done```
 
@@ -70,6 +70,11 @@ Descrição:<br> O objetivo deste desafio é criar um rate limiter em Go que pos
 
 ```curl -H "X-Forwarded-For: 192.168.1.101" http://localhost:8080```
 ```curl -H "X-Forwarded-For: 192.168.1.102" http://localhost:8080```
+
+### Enviar IPs e Token juntos 
+
+```for i in {1..11}; do curl -H "API_KEY: token133" -H "X-Forwarded-For:127.0.0.2" -X GET http://localhost:8080; echo; done```
+
 
 ### Acessar container Redis
 
