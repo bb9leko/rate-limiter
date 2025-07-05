@@ -92,4 +92,10 @@ Descrição:<br> O objetivo deste desafio é criar um rate limiter em Go que pos
 
 ```TTL ratelimit:token123```
 
+### Após Dockerizar a aplicação 
 
+```docker compose up --build```
+
+```cat /etc/resolv.conf | grep nameserver```   
+
+```for i in {1..11}; do curl -H "API_KEY: token133" -H "X-Forwarded-For:127.0.0.2" -X GET http://10.255.255.254:8080; echo; done ```
