@@ -3,7 +3,6 @@ package middleware
 import (
 	"context"
 	"fmt"
-	"os"
 	"sync"
 	"time"
 
@@ -13,28 +12,26 @@ import (
 )
 
 var (
-	redisStore *store.RedisStore
-	limiters   = make(map[string]*rate.Limiter)
-	limitersMu sync.Mutex
+	rateLimitStore store.RateLimitStore
+	limiters       = make(map[string]*rate.Limiter)
+	limitersMu     sync.Mutex
 )
 
-func InitRedisStore() {
-	addr := os.Getenv("REDIS_ADDR")
-	if addr == "" {
-		addr = "localhost:6379"
-	}
-	redisStore = store.NewRedisStore(addr)
-	if redisStore != nil {
-		fmt.Printf("RedisStore inicializado em %s\n", addr)
-	} else {
-		fmt.Println("Falha ao inicializar RedisStore")
+// InitRateLimitStore inicializa o store usando a factory
+func InitRateLimitStore() {
+	var err error
+	rateLimitStore, err = store.NewRateLimitStore()
+	if err != nil {
+		fmt.Printf("Erro ao inicializar store: %v\n", err)
+		return
 	}
 
-	pong, err := redisStore.Client.Ping(context.Background()).Result()
-	if err != nil {
-		fmt.Printf("Erro ao conectar no Redis: %v\n", err)
+	// Testa a conexão
+	ctx := context.Background()
+	if err := rateLimitStore.Ping(ctx); err != nil {
+		fmt.Printf("Erro ao conectar no store: %v\n", err)
 	} else {
-		fmt.Printf("Conexão com Redis OK: %s\n", pong)
+		fmt.Println("Store inicializado e conectado com sucesso")
 	}
 }
 
@@ -48,7 +45,8 @@ func AllowRequest(key string, isToken bool) (allowed bool, status int, msg strin
 		rateLimit, burst, ttl = getTokenConfig(key)
 	}
 
-	if redisStore == nil {
+	// Fallback para limiter em memória se store não estiver disponível
+	if rateLimitStore == nil {
 		limiter := getLimiterForKey(key, rateLimit, burst)
 		if !limiter.Allow() {
 			return false, 429, "Código HTTP: 429 Mensagem: you have reached the maximum number of requests or actions allowed within a certain time frame"
@@ -58,7 +56,7 @@ func AllowRequest(key string, isToken bool) (allowed bool, status int, msg strin
 
 	redisKey := "ratelimit:" + key
 	ctx := context.Background()
-	count, _, err := redisStore.Increment(ctx, redisKey, ttl)
+	count, _, err := rateLimitStore.Increment(ctx, redisKey, ttl)
 	if err != nil {
 		return false, 500, "Erro no rate limiter"
 	}
