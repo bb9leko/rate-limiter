@@ -1,0 +1,5 @@
+# Arquivos de configuração sensíveis
+.env
+
+# Dados persistentes do Redis (volume local)
+data/
