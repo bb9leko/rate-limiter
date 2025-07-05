@@ -19,8 +19,6 @@ func NewRateLimitStore() (RateLimitStore, error) {
 			addr = "localhost:6379"
 		}
 		return NewRedisStore(addr), nil
-	case "memory":
-		return NewMemoryStore(), nil
 	default:
 		return nil, fmt.Errorf("store type '%s' not supported", storeType)
 	}
